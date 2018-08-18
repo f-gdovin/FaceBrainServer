@@ -24,6 +24,9 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+// just a heartbeat test
+app.get('/', (req, res) => res.send('Server alive'));
+
 // every of these functions will receive (req, res) as well
 app.get('/profile/:id', profile.handleProfile(db));
 
