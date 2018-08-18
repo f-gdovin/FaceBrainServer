@@ -25,6 +25,7 @@ const handleRegister = (db, bcrypt) => (req, res) => {
                         joined: new Date()
                     })
                     .then(user => {
+                        console.log(`Inserted into 'users' table, returning ${user[0]}`);
                         res.status(200).json(user[0])
                     })
             })
