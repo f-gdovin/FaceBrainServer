@@ -16,6 +16,7 @@ const handleRegister = (db, bcrypt) => (req, res) => {
             .into('login')
             .returning('email')
             .then(loginEmail => {
+                console.log(`Inserted into 'login' table, continuing with email ${loginEmail}`);
                 return trx('users')
                     .returning('*')
                     .insert({
