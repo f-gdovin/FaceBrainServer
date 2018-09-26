@@ -12,7 +12,7 @@ const handleSignIn = (db, bcrypt) => (req, res) => {
                 return db.select('*').from('users')
                     .where('email', '=', email)
                     .then(userInfo => res.status(200).json(userInfo[0]))
-                    .catch(err => res.status(404).json('Wrong credentials'))
+                    .catch(() => res.status(404).json('Wrong credentials'))
             } else {
                 res.status(404).json('Wrong credentials')
             }

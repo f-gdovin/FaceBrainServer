@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+#  Backend
+  face-brain-server:
+    container_name: face-brain-server
+    build: ./
+    command: npm start
+    working_dir: /app
+    environment:
+      DATABASE_URI: postgres://postgres:postgres@postgres:5432/FaceBrain
+      DATABASE_PASS: postgres
+      DATABASE_HOST: postgres
+      DATABASE_DB: FaceBrain
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+
+#  PostgreSQL
+  postgres:
+    container_name: postgres
+    build: ./database
+    environment:
+      POSTGRES_URI: postgres://postgres:postgres@localhost:5432/FaceBrain
+      POSTGRES_PASS: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: FaceBrain
+    ports:
+      - "5432:5432"
