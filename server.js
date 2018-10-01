@@ -1,8 +1,13 @@
 const express = require('express');
+
+// middlewares
 const bodyParser = require('body-parser');
-const cors = require('cors');
-const knex = require('knex');
 const morgan = require('morgan');
+const cors = require('cors');
+const auth = require('./middlewares/authorization');
+
+const knex = require('knex');
+const redis = require('redis');
 const bcrypt = require('bcrypt-nodejs');
 
 const heartbeat = require('./controllers/heartbeat');
@@ -13,8 +18,9 @@ const image = require('./controllers/image');
 
 const db = knex({
     client: 'pg',
-    connection: process.env.DATABASE_URI
+    connection: process.env.POSTGRES_URI
 });
+const redisClient = redis.createClient(process.env.REDIS_URI);
 
 const whitelist = ['http://localhost:3001'];
 const corsOptions = {
@@ -22,7 +28,7 @@ const corsOptions = {
         if (whitelist.indexOf(origin) !== -1) {
             callback(null, true)
         } else {
-            callback(new Error('Not allowed by CORS'))
+            callback(new Error(`${origin} is not allowed by CORS`))
         }
     }
 };
@@ -36,15 +42,16 @@ app.use(bodyParser.json());
 // just a heartbeat test
 app.get('/', heartbeat.testHeartbeat(db));
 
-// every of these functions will receive (req, res) as well
-app.get('/profile/:id', profile.handleProfile(db));
-
-app.post('/signin', signIn.handleSignIn(db, bcrypt));
-
+// public routes
+app.post('/signin', signIn.handleSignIn(db, bcrypt, redisClient));
 app.post('/register', register.handleRegister(db, bcrypt));
 
-app.post('/imageurl', image.handleApiCall);
-app.put('/image', image.handleImage(db));
+// authenticated routes
+app.get('/profile/:id', auth.checkAuth(redisClient), profile.handleProfile(db));
+app.put('/profile/:id', auth.checkAuth(redisClient), profile.handleProfileUpdate(db));
+
+app.put('/image', auth.checkAuth(redisClient), image.handleImage(db));
+app.post('/imageurl', auth.checkAuth(redisClient), image.handleApiCall);
 
 app.listen(process.env.PORT || 3000, () => {
     console.log(`FaceBrain server running at ${process.env.PORT || 3000}`)
